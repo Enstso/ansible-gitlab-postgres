@@ -1,0 +1,10 @@
+env:
+  - all
+  - dev
+  - stage
+  - prod
+
+envVagrant:
+  - dev
+  - stage
+  - prod
