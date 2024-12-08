@@ -25,12 +25,12 @@
 
 - name: Replace peer to trust pg_hba.conf
   ansible.builtin.lineinfile:
-      path: /etc/postgresql/15/main/pg_hba.conf
-      regexp: '^local\s+all\s+postgres\s+peer'
-      line: 'local   all             postgres                                trust'
-      state: present
-    notify: Restart PostgreSQL
-    become: yes
+    path: /etc/postgresql/15/main/pg_hba.conf
+    regexp: '^local\s+all\s+postgres\s+peer'
+    line: 'local   all             postgres                                trust'
+    state: present
+  notify: Restart PostgreSQL
+  become: yes
 
   
 - name: Trust auth for users
@@ -43,14 +43,18 @@
   become: yes
 
 
-- name: Create dbs
+- name: Create databases
   ansible.builtin.shell:
     cmd: "psql -tc \"SELECT 1 FROM pg_database WHERE datname='{{ item }}'\" | grep -q 1 || createdb {{ item }}"
-  loop: {{ env }}
+  loop:
+    - all
+    - dev
+    - stage
+    - prod
   become: yes
   become_user: postgres
 
-- name: Create user vagrant with all privileges on all DBs if not exists
+- name: Create user 'vagrant' with superuser privileges
   ansible.builtin.shell:
    cmd: psql -tc "SELECT 1 FROM pg_roles WHERE rolname='vagrant'" | grep -q 1 || psql -c "CREATE USER vagrant WITH SUPERUSER;"
   become: yes
@@ -62,10 +66,14 @@
   become: yes
   become_user: postgres
 
-- name: Assign vagrant as owner of dev, stage, and prod databases
-  ansible.builtin.shell:
-    cmd: "psql -c \"ALTER DATABASE {{ item }} OWNER TO vagrant;\""
-  loop: {{ envVagrant }}
+
+- name: Assign 'vagrant' as owner of databases
+  ansible.builtin.postgresql_db:
+    name: "{{ item }}"
+    owner: vagrant
+  loop:
+    - dev
+    - stage
+    - prod
   become: yes
   become_user: postgres
-

@@ -5,10 +5,9 @@
 - name: Install common tools
   apt:
     name:
-      - nano
+      - vim
       - curl
       - wget
-      - git
       - software-properties-common
     state: present
 

@@ -1,35 +1,50 @@
-- name Downlaod and Install script
-  get_url:
-    url: https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh
-    dest: /tmp/gitlab-install.sh
-    mode: '0755'
-
-- name: Run GitLab install script
-  command: bash /tmp/gitlab-install.sh
-
-- name: Update apt cache after gitlab script
+- name: Mettre à jour la liste des paquets
   apt:
     update_cache: yes
-  
-- name: Install Gitlab
+    cache_valid_time: 3600
+
+- name: Installer les paquets nécessaires
   apt:
-    name: gitlab-ee
+    name:
+      - git
+      - wget
     state: present
-  
-- name: Configure GitLab domain
-  lineinfile:
-    path: /etc/gitlab/gitlab.rb
-    regexp: '^external_url'
-    line: "external_url 'http://{{ gitlab_domain }}'"
-  notify: Restart GitLab
-  become: yes
 
-- name: Configure GitLab storage path
-  lineinfile:
-    path: /etc/gitlab/gitlab.rb
-    regexp: '^git_data_dirs'
-    line: 'git_data_dirs({"default" => {"path" => "{{ gitlab_storage_path }}"}})'
-  notify: Restart GitLab
-  become: yes
- 
+- name: Ajouter le dépôt GitLab
+  get_url:
+    url: https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.deb.sh
+    dest: /tmp/gitlab-ce-script.sh
+    mode: '0755'
 
+- name: Exécuter le script d'installation du dépôt GitLab
+  command: bash /tmp/gitlab-ce-script.sh
+
+- name: Mettre à jour la liste des paquets (après ajout du dépôt GitLab)
+  apt:
+    update_cache: yes
+
+- name: Configurer la locale pour éviter les erreurs d'encodage
+  lineinfile:
+    path: /etc/environment
+    line: "{{ item }}"
+    create: yes
+  with_items:
+    - 'LC_CTYPE=en_US.UTF-8'
+    - 'LC_ALL=en_US.UTF-8'
+
+- name: Installer GitLab CE
+  apt:
+    name: gitlab-ce
+    state: present
+
+- name: Reconfigurer GitLab
+  command: gitlab-ctl reconfigure
+
+- name: Nettoyer les fichiers temporaires
+  file:
+    path: /tmp/gitlab-ce-script.sh
+    state: absent
+
+- name: Afficher un message de fin
+  debug:
+    msg: "Installation de GitLab CE terminée avec succès !"
