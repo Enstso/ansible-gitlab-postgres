@@ -9,9 +9,7 @@ This project aims to deploy a GitLab server in an automated manner using Ansible
 - [Deployment Steps](#deployment-steps)
 - [Ansible Project Structure](#ansible-project-structure)
 - [Usage](#usage)
-- [Verification](#verification)
-- [Notes](#notes)
-
+- [Note](#note)
 ---
 
 ## Prerequisites
@@ -55,25 +53,51 @@ Your Ansible project should follow this structure:
 
 ```plaintext
 ansible-project/
-├── ansible.cfg
 ├── deploy.yml
 ├── inventory.yml
 ├── roles/
 │   ├── common/
 │   │   ├── tasks/
+│   │   │   └── main.yml
 │   │   ├── vars/
-│   │   ├── handlers/
-│   │   ├── templates/
-│   │   └── files/
+│   │   │   └── main.yml
+│   │   └── handlers/
+│   │       └── main.yml
 │   ├── gitlab/
 │   │   ├── tasks/
+│   │   │   └── main.yml
 │   │   ├── vars/
-│   │   ├── handlers/
-│   │   ├── templates/
-│   │   └── files/
+│   │   │   └── main.yml
+│   │   └── handlers/
+│   │       └── main.yml
 │   └── bdd/
 │       ├── tasks/
+│       │   └── main.yml
 │       ├── vars/
-│       ├── handlers/
-│       ├── templates/
-│       └── files/
+│       │   └── main.yml
+│       └── handlers/
+│           └── main.yml
+```
+
+test gitlab:
+
+![img/img1.png](img/img1.png)
+
+![img/img2.png](img/img2.png)
+
+```sh
+netstat -paunt
+```
+![img/img3.png](img/img3.png)
+
+
+## Usage
+
+
+```sh
+ansible-playbook -i inventory.yml deploy.yml
+```
+
+## Note
+
+If you want to clean, the host use the script refresh.sh.

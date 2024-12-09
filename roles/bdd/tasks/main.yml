@@ -49,11 +49,7 @@
   ansible.builtin.postgresql_db:
     name: "{{ item }}"
     state: present
-  loop:
-    - all
-    - dev
-    - stage
-    - prod
+  loop: "{{ env }}"
   become: yes
   become_user: postgres
 
@@ -82,10 +78,7 @@
   ansible.builtin.postgresql_db:
     name: "{{ item }}"
     owner: vagrant
-  loop:
-    - dev
-    - stage
-    - prod
+  loop: "{{ envVagrant }}"
   become: yes
   become_user: postgres
 
