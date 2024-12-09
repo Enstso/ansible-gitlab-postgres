@@ -7,6 +7,7 @@
   ansible.builtin.package:
     name: postgresql
     state: present
+  become: yes
 
 - name: Run and enabled the service
   ansible.builtin.service:
@@ -31,6 +32,7 @@
     state: present
   notify: Restart PostgreSQL
   become: yes
+  become_user: postgres
 
   
 - name: Trust auth for users
@@ -41,11 +43,12 @@
     state: present
   notify: Restart PostgreSQL
   become: yes
-
+  become_user: postgres
 
 - name: Create databases
-  ansible.builtin.shell:
-    cmd: "psql -tc \"SELECT 1 FROM pg_database WHERE datname='{{ item }}'\" | grep -q 1 || createdb {{ item }}"
+  ansible.builtin.postgresql_db:
+    name: "{{ item }}"
+    state: present
   loop:
     - all
     - dev
@@ -55,14 +58,22 @@
   become_user: postgres
 
 - name: Create user 'vagrant' with superuser privileges
-  ansible.builtin.shell:
-   cmd: psql -tc "SELECT 1 FROM pg_roles WHERE rolname='vagrant'" | grep -q 1 || psql -c "CREATE USER vagrant WITH SUPERUSER;"
+  ansible.builtin.postgresql_user:
+    name: vagrant
+    password: "PasswordDb"
+    role_attr_flags: SUPERUSER
+    state: present
   become: yes
   become_user: postgres
 
+
 - name: Grant privileges to vagrant for DB all
-  ansible.builtin.shell:
-   cmd: "psql -c \"GRANT ALL PRIVILEGES ON DATABASE \\\"all\\\" TO vagrant;\""
+  ansible.builtin.postgresql_privs:
+    database: all
+    roles: vagrant
+    type: database
+    privs: ALL
+    state: present
   become: yes
   become_user: postgres
 
@@ -77,3 +88,4 @@
     - prod
   become: yes
   become_user: postgres
+

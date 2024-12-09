@@ -8,6 +8,6 @@
       - vim
       - curl
       - wget
-      - software-properties-common
+      - net-tools
     state: present
 
